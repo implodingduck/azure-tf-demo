@@ -21,6 +21,6 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-azure-tf-demo"
+  name     = "rg-azure-tf-demo-eastus"
   location = "East US"
 }
