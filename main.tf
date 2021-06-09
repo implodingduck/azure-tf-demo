@@ -20,7 +20,8 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-azure-tf-demo-eastus"
+module "webapp" {
+  source = "github.com/implodingduck/tfmodules//webappvm"
+  name = "azure-tf-demo"
   location = "East US"
 }
