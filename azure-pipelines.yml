@@ -28,7 +28,9 @@ stages:
             export ARM_TENANT_ID=$tenantId
             ./env_setup.sh
             echo "does it grab it?"
-            echo $key
+            echo $(key)
+            echo ${{ variables.var }}
+            echo $[variables.key]
             echo "maybe?"
             echo $TF_VAR_key
             terraform init --backend-config=backend.tfvars
