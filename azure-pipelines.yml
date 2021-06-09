@@ -27,6 +27,9 @@ stages:
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$tenantId
             ./env_setup.sh
+            echo "does it grab it?"
+            echo $container-name
+            echo "maybe?"
             echo $TF_VAR_container_name
             terraform init --backend-config=backend.tfvars
         env:
