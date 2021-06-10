@@ -27,5 +27,3 @@ module "webapp" {
   vm_size  = "Standard_B2s"
 }
 
-
-
