@@ -21,9 +21,10 @@ provider "azurerm" {
 }
 
 module "webapp" {
-  source = "github.com/implodingduck/tfmodules//webappvm"
-  name = "azure-tf-demo"
+  source   = "github.com/implodingduck/tfmodules//webappvm"
+  name     = "azure-tf-demo"
   location = "East US"
+  vm_size  = "Standard_B2s"
 }
 
 
