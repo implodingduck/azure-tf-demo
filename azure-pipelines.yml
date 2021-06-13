@@ -54,7 +54,7 @@ stages:
           TF_VAR_container_name: $(container-name)
           TF_VAR_env: sbx
       - publish: $(System.DefaultWorkingDirectory)/theplansbx
-        artifact: theplan
+        artifact: theplansbx
   - stage: apply_sbx
     variables:
       - group: kv-azure-tf-demo-sbx
@@ -157,7 +157,7 @@ stages:
           TF_VAR_container_name: $(container-name)
           TF_VAR_env: prod
       - publish: $(System.DefaultWorkingDirectory)/theplanprod
-        artifact: theplan
+        artifact: theplanprod
   - stage: apply_prod
     variables:
       - group: kv-azure-tf-demo-prod
