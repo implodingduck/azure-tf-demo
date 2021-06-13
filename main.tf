@@ -25,6 +25,7 @@ module "webapp" {
   name     = "azure-tf-demo"
   location = "East US"
   vm_size  = "Standard_B2s"
+  env      = var.env
   tags = {
     owner = "implodingduck"
   }

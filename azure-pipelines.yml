@@ -4,11 +4,10 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-variables:
-- group: kv-azure-tf-demo
-
 stages:
-  - stage: plan
+  - stage: plan-sbx
+    variables:
+      - group: kv-azure-tf-demo-sbx
     jobs:
     - job: terraform_plan
       steps:
@@ -27,12 +26,6 @@ stages:
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$tenantId
             ./env_setup.sh
-            echo "does it grab it?"
-            echo $(key)
-            echo ${{ variables.key }}
-            echo $[variables.key]
-            echo "maybe?"
-            echo $TF_VAR_key
             terraform init --backend-config=backend.tfvars
         env:
           TF_VAR_subscription_id: $(subscription-id)
@@ -52,16 +45,19 @@ stages:
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$tenantId
-            terraform plan -out theplan
+            terraform plan -out theplansbx
         env:
           TF_VAR_subscription_id: $(subscription-id)
           TF_VAR_storage_account_name: $(storage-account-name)
           TF_VAR_resource_group_name: $(resource-group-name)
           TF_VAR_key: $(key)
           TF_VAR_container_name: $(container-name)
-      - publish: $(System.DefaultWorkingDirectory)/theplan
+          TF_VAR_env: sbx
+      - publish: $(System.DefaultWorkingDirectory)/theplansbx
         artifact: theplan
-  - stage: apply
+  - stage: apply-sbx
+    variables:
+      - group: kv-azure-tf-demo-sbx
     jobs:
     - deployment: terraform_apply
       environment: sandbox
@@ -71,9 +67,7 @@ stages:
           steps:
           - checkout: self
           - download: current
-            artifact: theplan
-          - task: FuncToolsInstaller@0
-            displayName: "Install Function Tool"
+            artifact: theplansbx
           - task: AzureCLI@2
             displayName: "Terraform Init"
             inputs:
@@ -107,7 +101,110 @@ stages:
                 export ARM_CLIENT_ID=$servicePrincipalId
                 export ARM_CLIENT_SECRET=$servicePrincipalKey
                 export ARM_TENANT_ID=$tenantId
-                terraform apply -auto-approve  $(Pipeline.Workspace)/theplan/theplan
+                terraform apply -auto-approve  $(Pipeline.Workspace)/theplansbx/theplansbx
+            env:
+              TF_VAR_subscription_id: $(subscription-id)
+              TF_VAR_storage_account_name: $(storage-account-name)
+              TF_VAR_resource_group_name: $(resource-group-name)
+              TF_VAR_key: $(key)
+              TF_VAR_container_name: $(container-name)
+  - stage: plan-prod
+    variables:
+      - group: kv-azure-tf-demo-prod
+    jobs:
+    - job: terraform_plan
+      steps:
+      - script: terraform --version
+        displayName: 'check terraform version'
+      - task: AzureCLI@2
+        displayName: "Terraform Init"
+        inputs:
+          azureSubscription: ARM_SUBSCRIPTION
+          scriptType: bash
+          addSpnToEnvironment: true
+          scriptLocation: inlineScript
+          inlineScript: |
+            echo "starting..."
+            export ARM_CLIENT_ID=$servicePrincipalId
+            export ARM_CLIENT_SECRET=$servicePrincipalKey
+            export ARM_TENANT_ID=$tenantId
+            ./env_setup.sh
+            terraform init --backend-config=backend.tfvars
+        env:
+          TF_VAR_subscription_id: $(subscription-id)
+          TF_VAR_storage_account_name: $(storage-account-name)
+          TF_VAR_resource_group_name: $(resource-group-name)
+          TF_VAR_key: $(key)
+          TF_VAR_container_name: $(container-name)
+      - task: AzureCLI@2
+        displayName: "Terraform Plan"
+        inputs:
+          azureSubscription: ARM_SUBSCRIPTION
+          scriptType: bash
+          addSpnToEnvironment: true
+          scriptLocation: inlineScript
+          inlineScript: |
+            echo "starting..."
+            export ARM_CLIENT_ID=$servicePrincipalId
+            export ARM_CLIENT_SECRET=$servicePrincipalKey
+            export ARM_TENANT_ID=$tenantId
+            terraform plan -out theplanprod
+        env:
+          TF_VAR_subscription_id: $(subscription-id)
+          TF_VAR_storage_account_name: $(storage-account-name)
+          TF_VAR_resource_group_name: $(resource-group-name)
+          TF_VAR_key: $(key)
+          TF_VAR_container_name: $(container-name)
+          TF_VAR_env: prod
+      - publish: $(System.DefaultWorkingDirectory)/theplanprod
+        artifact: theplan
+  - stage: apply-prod
+    variables:
+      - group: kv-azure-tf-demo-prod
+    jobs:
+    - deployment: terraform_apply
+      environment: production
+      strategy:
+       runOnce:
+         deploy:
+          steps:
+          - checkout: self
+          - download: current
+            artifact: theplanprod
+          - task: AzureCLI@2
+            displayName: "Terraform Init"
+            inputs:
+              azureSubscription: ARM_SUBSCRIPTION
+              scriptType: bash
+              addSpnToEnvironment: true
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "starting..."
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_CLIENT_SECRET=$servicePrincipalKey
+                export ARM_TENANT_ID=$tenantId
+                ./env_setup.sh
+                echo $TF_VAR_container_name
+                terraform init --backend-config=backend.tfvars
+            env:
+              TF_VAR_subscription_id: $(subscription-id)
+              TF_VAR_storage_account_name: $(storage-account-name)
+              TF_VAR_resource_group_name: $(resource-group-name)
+              TF_VAR_key: $(key)
+              TF_VAR_container_name: $(container-name)
+          - task: AzureCLI@2
+            displayName: "Terraform Apply"
+            inputs:
+              azureSubscription: ARM_SUBSCRIPTION
+              scriptType: bash
+              addSpnToEnvironment: true
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "starting..."
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_CLIENT_SECRET=$servicePrincipalKey
+                export ARM_TENANT_ID=$tenantId
+                terraform apply -auto-approve  $(Pipeline.Workspace)/theplanprod/theplanprod
             env:
               TF_VAR_subscription_id: $(subscription-id)
               TF_VAR_storage_account_name: $(storage-account-name)

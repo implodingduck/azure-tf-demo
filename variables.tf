@@ -19,3 +19,6 @@ variable "container_name" {
 }
 
 
+variable "env" {
+  type = string
+}
