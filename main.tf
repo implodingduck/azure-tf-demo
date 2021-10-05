@@ -21,6 +21,7 @@ provider "azurerm" {
 }
 
 module "webapp" {
+  count = 0 # comment this out to actually deploy it
   source   = "github.com/implodingduck/tfmodules//webappvm"
   name     = "azure-tf-demo"
   location = "East US"
